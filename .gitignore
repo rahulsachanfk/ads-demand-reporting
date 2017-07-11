@@ -1,0 +1,17 @@
+/target
+/build
+/output
+/out
+*/target
+*/build
+*/output
+*/out
+.idea
+.svn
+*.iml
+*.ipr
+*.iws
+*.swp
+*.class
+.DS_Store
+*.log
