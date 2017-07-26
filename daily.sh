@@ -42,7 +42,7 @@ START_DATE="${Ryear}-${Rmonth}-${Rday} 00:00:00"
 
 filename="billing_${Ryear}_${Rmonth}_${Rday}.xls";
 
-/usr/lib/jvm/jdk-8-oracle-x64/bin/java -jar target/demand_platform-1.0-SNAPSHOT.jar ${Ryear} ${Rmonth} ${Rday}
+/usr/lib/jvm/jdk-8-oracle-x64/bin/java -jar /home/rahul.sachan/ads-demand-reporting/target/demand_platform-1.0-SNAPSHOT.jar ${Ryear} ${Rmonth} ${Rday}
 ##/usr/lib/jvm/j2sdk1.8-oracle/bin/java -jar target/demand_platform-1.0-SNAPSHOT.jar ${year} ${month}
 
 echo "$filename"
