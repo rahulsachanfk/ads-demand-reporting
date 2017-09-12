@@ -6,9 +6,8 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.joda.time.*;
-
-
+import org.joda.time.DateTime;
+import org.joda.time.Days;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,9 +15,14 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.Date;
 
+
 /**
  * Created by rahul.sachan on 10/03/17.
  */
+
+//ssh -f -N -L 7755:10.33.10.193:3306 10.32.246.118
+//ssh -f -N -L 7766:10.32.149.12:3306 10.32.246.118
+
 public class CampaignBilling {
     public static void main(String args[]) throws SQLException, IOException {
         System.out.println("CampaignBilling loaded");
@@ -31,6 +35,7 @@ public class CampaignBilling {
         System.out.println(year + "="+ month +"="+ day);
 
         LocalDateTime currentTime = LocalDateTime.now();
+        ConfigProvider cp = ConfigProvider.getInstance();
         String filename ;
         if (day != null && !day.isEmpty())  filename = "/tmp/billing_" + year + "_" + month +"_"+ day +".xls";
         else  filename = "/tmp/billing_" + year + "_" + month + ".xls";
@@ -39,28 +44,30 @@ public class CampaignBilling {
         FileOutputStream fileOut = new FileOutputStream(filename);
         HSSFWorkbook wb = new HSSFWorkbook();
         Sheet sheet = wb.createSheet("campaigns");
-        Connection con = JdbcConnection.getJdbcConnection();
 
-        Connection con1 = DriverManager.getConnection("jdbc:mysql://10.32.117.167:3306/neo", "neo_ro", "neo_ro123");
+        //Connection neoCon = DriverManager.getConnection("jdbc:mysql://127.0.0.1:7766/neo", "neo_ro", "ua1zg24j");
+        //Connection reportcon = DriverManager.getConnection("jdbc:mysql://127.0.0.1:7755/neo", "demand", "demand123");
 
+        Connection neoCon = DriverManager.getConnection(cp.get(Constant.NEO_DB_URL,""),cp.get(Constant.NEO_DB_USER,""),cp.get(Constant.NEO_DB_PWD,""));
+        Connection reportcon = DriverManager.getConnection(cp.get(Constant.DB_CONFIGURATION_URL, ""), cp.get(Constant.DB_CONFIGURATION_USER, ""), cp.get(Constant.DB_CONFIGURATION_PASSWORD, ""));
+        String exclusionList = cp.get(Constant.ACCOUNT_EXCLUSION_LIST,"");
         final String fields[] = {"BU", "Billed_From", "Billed_state_code", "Nature_of_Transac", "Shipped_From", "Shipped_From_state", "Billed_To", "Billed_To_State", "Billed_To_Address", "Billed_To_GSTIN", "Shipped_To", "Shipped_To_State", "Shipped_To_Address", "Shipped_To_GSTIN", "Business_Type", "Nature_of_transaction", "external_ro_id", "internal_ro_id", "PAN", "credit_limit", "credit_term", "HSN/SAC", "ITEM_TYPE", "ITEM_DESC", "start_date", "end_date", "QTY", "UOM", "Base_value", "taxable_value", "discount", "Document_Linkes", "POE_DOC", "RO_DOC","billing_gstin_doc","shipping_gstin_doc"};
         PreparedStatement pr;
         if (day != null && !day.isEmpty()) {
-            String BILLQUERY = "select c.team_id,year,month,bannerid,sum(view) views,sum(gross_rev) Base_value,b.campaign_id,c.start_date,c.end_date,IF(c.cost_model='CPT','Days','Views') UOM,c.discount,c.name ITEM_DESC,c.total_budget,c.poe POE_DOC,ro.external_ro_id,ro.internal_ro_id,ro.ro_doc,ro.old_ro_id from (select year,month,bannerid,sum(view) view,sum(gross_rev) gross_rev from dp_daily_banner_metrics where year=? and month=? and day=? group by bannerid having gross_rev >0) r left join banner b on r.bannerid=b.id left join campaign c on b.campaign_id=c.id  left join release_order ro on c.ro_id=ro.id group by b.campaign_id";
+            String BILLQUERY = "select c.team_id,year,month,bannerid,sum(view) views,sum(gross_rev) Base_value,b.campaign_id,c.start_date,c.end_date,IF(c.cost_model='CPT','Days','Views') UOM,c.discount,c.name ITEM_DESC,c.total_budget,c.poe POE_DOC,ro.external_ro_id,ro.internal_ro_id,ro.ro_doc,ro.old_ro_id from (select year,month,bannerid,sum(view) view,sum(gross_rev) gross_rev from dp_daily_banner_metrics where year=? and month=? and day=? group by bannerid having gross_rev >0) r left join banner b on r.bannerid=b.id left join campaign c on b.campaign_id=c.id  left join release_order ro on c.ro_id=ro.id where c.team_id not in ("+ exclusionList +") group by b.campaign_id";
             System.out.println("daily query");
-            pr = con.prepareStatement(BILLQUERY);
+            pr = reportcon.prepareStatement(BILLQUERY);
             pr.setString(1, year);
             pr.setString(2, month);
             pr.setString(3, day);
         }else{
-            String BILLQUERY = "select c.team_id,year,month,bannerid,sum(view) views,sum(gross_rev) Base_value,b.campaign_id,c.start_date,c.end_date,IF(c.cost_model='CPT','Days','Views') UOM,c.discount,c.name ITEM_DESC,c.total_budget,c.poe POE_DOC,ro.external_ro_id,ro.internal_ro_id,ro.ro_doc,ro.old_ro_id from (select year,month,bannerid,sum(view) view,sum(gross_rev) gross_rev from dp_daily_banner_metrics where year=? and month=? group by bannerid having gross_rev >0) r left join banner b on r.bannerid=b.id left join campaign c on b.campaign_id=c.id  left join release_order ro on c.ro_id=ro.id group by b.campaign_id";
+            String BILLQUERY = "select c.team_id,year,month,bannerid,sum(view) views,sum(gross_rev) Base_value,b.campaign_id,c.start_date,c.end_date,IF(c.cost_model='CPT','Days','Views') UOM,c.discount,c.name ITEM_DESC,c.total_budget,c.poe POE_DOC,ro.external_ro_id,ro.internal_ro_id,ro.ro_doc,ro.old_ro_id from (select year,month,bannerid,sum(view) view,sum(gross_rev) gross_rev from dp_daily_banner_metrics where year=? and month=? group by bannerid having gross_rev >0) r left join banner b on r.bannerid=b.id left join campaign c on b.campaign_id=c.id  left join release_order ro on c.ro_id=ro.id where c.team_id not in ("+ exclusionList +") group by b.campaign_id";
             System.out.println("Monthly query");
-            pr = con.prepareStatement(BILLQUERY);
+            pr = reportcon.prepareStatement(BILLQUERY);
             pr.setString(1, year);
             pr.setString(2, month);
         }
 
-        //pr.setString(3,excludeList);
         ResultSet rs = pr.executeQuery();
 
         Row headerRow = sheet.createRow(0);
@@ -76,7 +83,7 @@ public class CampaignBilling {
             String teamId = rs.getString("team_id");
             String SQUERY = "select CONCAT('Agreement:',IFNULL(b.agreement,''),'\\nOnboarding:',IFNULL(b.onboarding_form,''),'\\nCheque:',IFNULL(b.cancel_cheque,''),'\\nPan:',IFNULL(b.pan_doc,'')) Document_Linkes, b.*,concat(ad.line_one,' ',ad.line_two,' ',ad.line_three,',',ad.city,',',ad.pincode,',',ad.state,',',ad.country) Billed_To_Address, ad.state, concat(sadd.line_one,' ',sadd.line_two,' ',sadd.line_three,',',sadd.city,',',sadd.pincode,',',sadd.state,',',sadd.country) Shipped_To_Address, sadd.state Shipped_To_State from (select * from user_group ug where id = ( select parent_user_group from user_group where id=?)) a left join billing b on a.billing_id= b.billing_id left join address ad on b.billing_address_id= ad.id left join address sadd on b.shipping_address_id = sadd.id ";
 
-            PreparedStatement pst = con1.prepareStatement(SQUERY);
+            PreparedStatement pst = neoCon.prepareStatement(SQUERY);
 
             pst.setString(1, teamId);
             ResultSet rs1 = pst.executeQuery();
@@ -224,8 +231,12 @@ public class CampaignBilling {
         try {
             wb.write(fileOut);
             fileOut.flush();
+            neoCon.close();
+            reportcon.close();
         } catch (IOException e) {
             System.out.println(e.getMessage());
+            neoCon.close();
+            reportcon.close();
         }
         fileOut.close();
     }

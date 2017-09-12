@@ -17,5 +17,8 @@ public class Constant {
     public static final String MAIL_APIKEY_SANDBOX = "mailing.x-api-key-sandbox";
     public static final String MAIL_BCC = "mailing.bccmailid";
     public static final String XLXS_PWD = "mailing.xlsx-pwd";
+    public static final String NEO_DB_PWD = "neo.databaseConfiguration.password";
+    public static final String NEO_DB_URL = "neo.databaseConfiguration.url";
+    public static final String NEO_DB_USER = "neo.databaseConfiguration.user";
 }
 
