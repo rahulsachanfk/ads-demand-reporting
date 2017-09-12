@@ -2,15 +2,13 @@ package com.flipkart.ad.dp;
 
 
 
-import com.flipkart.ads.report.JDBCUtill;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.joda.time.*;
+import org.joda.time.DateTime;
+import org.joda.time.Days;
 
-
-import javax.validation.constraints.Null;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.*;
@@ -56,20 +54,18 @@ public class CampaignBilling {
         final String fields[] = {"BU", "Billed_From", "Billed_state_code", "Nature_of_Transac", "Shipped_From", "Shipped_From_state", "Billed_To", "Billed_To_State", "Billed_To_Address", "Billed_To_GSTIN", "Shipped_To", "Shipped_To_State", "Shipped_To_Address", "Shipped_To_GSTIN", "Business_Type", "Nature_of_transaction", "external_ro_id", "internal_ro_id", "PAN", "credit_limit", "credit_term", "HSN/SAC", "ITEM_TYPE", "ITEM_DESC", "start_date", "end_date", "QTY", "UOM", "Base_value", "taxable_value", "discount", "Document_Linkes", "POE_DOC", "RO_DOC","billing_gstin_doc","shipping_gstin_doc"};
         PreparedStatement pr;
         if (day != null && !day.isEmpty()) {
-            String BILLQUERY = "select c.team_id,year,month,bannerid,sum(view) views,sum(gross_rev) Base_value,b.campaign_id,c.start_date,c.end_date,IF(c.cost_model='CPT','Days','Views') UOM,c.discount,c.name ITEM_DESC,c.total_budget,c.poe POE_DOC,ro.external_ro_id,ro.internal_ro_id,ro.ro_doc,ro.old_ro_id from (select year,month,bannerid,sum(view) view,sum(gross_rev) gross_rev from dp_daily_banner_metrics where year=? and month=? and day=? group by bannerid having gross_rev >0) r left join banner b on r.bannerid=b.id left join campaign c on b.campaign_id=c.id  left join release_order ro on c.ro_id=ro.id where c.team_id not in (?) group by b.campaign_id";
+            String BILLQUERY = "select c.team_id,year,month,bannerid,sum(view) views,sum(gross_rev) Base_value,b.campaign_id,c.start_date,c.end_date,IF(c.cost_model='CPT','Days','Views') UOM,c.discount,c.name ITEM_DESC,c.total_budget,c.poe POE_DOC,ro.external_ro_id,ro.internal_ro_id,ro.ro_doc,ro.old_ro_id from (select year,month,bannerid,sum(view) view,sum(gross_rev) gross_rev from dp_daily_banner_metrics where year=? and month=? and day=? group by bannerid having gross_rev >0) r left join banner b on r.bannerid=b.id left join campaign c on b.campaign_id=c.id  left join release_order ro on c.ro_id=ro.id where c.team_id not in ("+ exclusionList +") group by b.campaign_id";
             System.out.println("daily query");
             pr = reportcon.prepareStatement(BILLQUERY);
             pr.setString(1, year);
             pr.setString(2, month);
             pr.setString(3, day);
-            pr.setString(4,exclusionList);
         }else{
-            String BILLQUERY = "select c.team_id,year,month,bannerid,sum(view) views,sum(gross_rev) Base_value,b.campaign_id,c.start_date,c.end_date,IF(c.cost_model='CPT','Days','Views') UOM,c.discount,c.name ITEM_DESC,c.total_budget,c.poe POE_DOC,ro.external_ro_id,ro.internal_ro_id,ro.ro_doc,ro.old_ro_id from (select year,month,bannerid,sum(view) view,sum(gross_rev) gross_rev from dp_daily_banner_metrics where year=? and month=? group by bannerid having gross_rev >0) r left join banner b on r.bannerid=b.id left join campaign c on b.campaign_id=c.id  left join release_order ro on c.ro_id=ro.id where c.team_id not in (?) group by b.campaign_id";
+            String BILLQUERY = "select c.team_id,year,month,bannerid,sum(view) views,sum(gross_rev) Base_value,b.campaign_id,c.start_date,c.end_date,IF(c.cost_model='CPT','Days','Views') UOM,c.discount,c.name ITEM_DESC,c.total_budget,c.poe POE_DOC,ro.external_ro_id,ro.internal_ro_id,ro.ro_doc,ro.old_ro_id from (select year,month,bannerid,sum(view) view,sum(gross_rev) gross_rev from dp_daily_banner_metrics where year=? and month=? group by bannerid having gross_rev >0) r left join banner b on r.bannerid=b.id left join campaign c on b.campaign_id=c.id  left join release_order ro on c.ro_id=ro.id where c.team_id not in ("+ exclusionList +") group by b.campaign_id";
             System.out.println("Monthly query");
             pr = reportcon.prepareStatement(BILLQUERY);
             pr.setString(1, year);
             pr.setString(2, month);
-            pr.setString(3,exclusionList);
         }
 
         ResultSet rs = pr.executeQuery();
