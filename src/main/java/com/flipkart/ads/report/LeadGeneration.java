@@ -41,7 +41,7 @@ import java.util.HashMap;
  */
 
 //ssh -f -N -L 7788:10.33.145.239:3306 10.32.246.118
-//ssh -f -N -L 7766:10.32.117.167:3306 10.32.246.118
+//ssh -f -N -L 7766:10.32.149.12:3306 10.32.246.118
 //ssh -f -N -L 7755:10.33.10.193:3306 10.32.246.118
 public class LeadGeneration {
 
@@ -55,8 +55,8 @@ public class LeadGeneration {
 
 //        String repType = "daily";
 //        String year = "2017";
-//        String month = "07";
-//        String day = "24";
+//        String month = "09";
+//        String day = "09";
 //        String hour = "12";
 
         String date = day+"/"+month+"/"+year;
@@ -72,11 +72,11 @@ public class LeadGeneration {
          dateAgo = dateToStr(daysAgo);
          date = dateToStr(date1);
         Client client = Client.create();
-        Connection con = JDBCUtill.getJdbcConnection("jdbc:mysql://10.32.117.167:3306/neo", "neo_ro", "neo_ro123");
+        Connection con = JDBCUtill.getJdbcConnection("jdbc:mysql://10.32.149.12:3306/neo", "neo_ro", "ua1zg24j");
         Connection con1 = JDBCUtill.getJdbcConnection("jdbc:mysql://10.33.145.239:3306/dp_reports_db", "gjx_core", "gjx123");
         Connection con2 = JDBCUtill.getJdbcConnection("jdbc:mysql://10.33.10.193:3306/demand_report", "demand", "demand123");
 
-//        Connection con = JDBCUtill.getJdbcConnection("jdbc:mysql://127.0.0.1:7766/neo", "neo_ro", "neo_ro123");
+//        Connection con = JDBCUtill.getJdbcConnection("jdbc:mysql://127.0.0.1:7766/neo", "neo_ro", "ua1zg24j");
 //        Connection con1 = JDBCUtill.getJdbcConnection("jdbc:mysql://127.0.0.1:7788/dp_reports_db", "gjx_core", "gjx123");
 //        Connection con2 = JDBCUtill.getJdbcConnection("jdbc:mysql://127.0.0.1:7755/demand_report", "demand", "demand123");
 
